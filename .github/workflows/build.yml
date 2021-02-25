@@ -1,0 +1,20 @@
+name: build
+on: [push]
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: build
+        env:
+          CI_IMAGE_NAME: tor
+          CI_IMAGE_TAG: latest
+          CI_REGISTRY_URL: ghcr.io
+          CI_REGISTRY_USR: ct0r
+          CI_REGISTRY_PWD: ${{ secrets.REGISTRY_PWD }}
+        run: |
+          docker build -t $CI_IMAGE_NAME .
+          docker tag $CI_IMAGE_NAME $CI_REGISTRY_URL/$CI_REGISTRY_USR/$CI_IMAGE_NAME:$CI_IMAGE_TAG
+          docker login -u $CI_REGISTRY_USR -p $CI_REGISTRY_PWD $CI_REGISTRY_URL
+          docker push $CI_REGISTRY_URL/$CI_REGISTRY_URL/$CI_IMAGE:$CI_IMAGE_TAG
