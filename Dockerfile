@@ -1,13 +1,19 @@
 FROM alpine:latest AS build
 
-# TODO: Check signature
-RUN TOR_FILE="tor-0.4.5.6" \
-    && apk --no-cache add --update build-base libevent-dev libressl-dev zlib-dev \
-    && wget -q "https://dist.torproject.org/$TOR_FILE.tar.gz" \
-    && tar -xf "$TOR_FILE.tar.gz" \
-    && cd $TOR_FILE \
+# TODO: Find latest version
+ENV TOR_VERSION="0.4.5.6"
+ENV KEY_SERVER="ha.pool.sks-keyservers.net"
+
+RUN apk --no-cache add --update build-base gnupg libevent-dev libressl-dev zlib-dev \
+    && wget -q "https://dist.torproject.org/tor-$TOR_VERSION.tar.gz" \
+    && wget -q "https://dist.torproject.org/tor-$TOR_VERSION.tar.gz.asc" \
+    && gpg --keyserver $KEY_SERVER --receive-keys "0x6AFEE6D49E92B601" \
+    && gpg --verify "tor-$TOR_VERSION.tar.gz.asc" \
+    && tar -xf "tor-$TOR_VERSION.tar.gz" \        
+    && cd "tor-$TOR_VERSION" \
     && ./configure \
     && make install
+
 
 FROM alpine:latest
 
